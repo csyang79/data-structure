@@ -21,12 +21,19 @@ public:
 	{
 		return header->right == nullNode;
 	}
-	void printTree() const
+	void printInorder() const
 	{
 		if (header->right == nullNode)
 			std::cout << "Empty tree" << std::endl;
 		else
-			printTree(header->right);
+			printInorder(header->right);
+	}
+	void printPreorder() const
+	{
+		if (header->right == nullNode)
+			std::cout << "Empty tree" << std::endl;
+		else
+			printPreorder(header->right);
 	}
 
 	void makeEmpty()
@@ -65,25 +72,34 @@ private:
 	RedBlackNode *sibling;
 	
 	void reclainMemory(RedBlackNode *t);
-	void printTree(RedBlackNode *t) const
+	void printInorder(RedBlackNode *t) const
 	{
 		if (t != t->left)
 		{
-			printTree(t->left);
-			std::cout << t->element << std::endl;
-			printTree(t->right);
+			printInorder(t->left);
+			std::cout << t->element << " " << t->color << std::endl;
+			printInorder(t->right);
+		}
+	}
+	void printPreorder(RedBlackNode *t) const
+	{
+		if (t != t->left)
+		{
+			std::cout << t->element << " " << t->color << std::endl;
+			printPreorder(t->left);
+			printPreorder(t->right);
 		}
 	}
 	bool isRed(RedBlackNode* node)
 	{
-		return node->color == RED;
+		return node != node->left && node->color == RED;
 	}
 	//RedBlackNode *clone(RedBlackNode *t) const;
 
 	void handleDoubleRed(const T& item);
 	RedBlackNode *rotate(const T& item, RedBlackNode *theParent);
-	RedBlackNode* rotateWithLeftChild(RedBlackNode *& k2);
-	RedBlackNode* rotateWithRightChild(RedBlackNode *& k1);
+	void rotateWithLeftChild(RedBlackNode *& k2);
+	void rotateWithRightChild(RedBlackNode *& k1);
 
 	RedBlackNode* doubleRotate(RedBlackNode *& r, bool LR, bool recolor);
 	RedBlackNode* singleRotate(RedBlackNode *& r, bool LR, bool recolor);
@@ -114,22 +130,20 @@ auto RedBlackTree<T>::rotate(const T& item, RedBlackNode *theParent)->RedBlackNo
 }
 
 template <typename T>
-auto RedBlackTree<T>::rotateWithLeftChild(RedBlackNode *& r)->RedBlackNode*
+void RedBlackTree<T>::rotateWithLeftChild(RedBlackNode *& r)
 {
 	RedBlackNode* q = r->left;
 	r->left = q->right;
 	q->right = r;
-	q = r;
-	return q;
+	r = q;
 }
 template <typename T>
-auto RedBlackTree<T>::rotateWithRightChild(RedBlackNode *& r)->RedBlackNode*
+void RedBlackTree<T>::rotateWithRightChild(RedBlackNode *& r)
 {
 	RedBlackNode* q = r->right;
 	r->right = q->left;
 	q->left = r;
-	q = r;
-	return q;
+	r = q;
 }
 template <typename T>
 void RedBlackTree<T>::handleDoubleRed(const T& item)
@@ -222,11 +236,7 @@ void RedBlackTree<T>::erase(const T& x)
 		if (!isRed(current) && !isRed(current->child(dir)))
 		{
 			if (isRed(current->child(!dir)))
-			{
-				parent = parent->child(last) = dir == 1 ? rotateWithLeftChild(current) : rotateWithRightChild(current);	
-				parent->color = BLACK;
-				current->color = RED;
-			}
+				parent = parent->child(last) = singleRotate(current, dir, true);
 			else
 			{
 				sibling = parent->child(!last);
@@ -267,9 +277,12 @@ void RedBlackTree<T>::erase(const T& x)
 int main()
 {
 	class RedBlackTree<int> rbTree;
-	vector<int> a{ 30, 15, 70, 10, 20, 60, 85, 5, 50, 65, 80, 90, 40, 55 };
-	for (int i = 0; i < a.size(); ++i)
+	vector<int> a{ 30, 40, 70, 10, 20, 60, 85, 5, 50, 65, 80, 90, 40, 55 };
+	for (unsigned int i = 0; i < a.size(); ++i)
 		rbTree.insert(a[i]);
-	rbTree.printTree();
+	std::cout << "Inorder:" << std::endl;
+	rbTree.printInorder();
+	std::cout << "Preorder:" << std::endl;
+	rbTree.printPreorder();
 	return 0;
 }
