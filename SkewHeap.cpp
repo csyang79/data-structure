@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <string>
+using std::string;
 using std::queue;
 using std::vector;
 template <typename T>
@@ -9,6 +11,7 @@ class SkewHeap
 public:
 	SkewHeap():root(nullptr) { }
 	SkewHeap(const SkewHeap & rhs);
+	SkewHeap(const string & preorder);
 	~SkewHeap()
 	{
 		makeEmpty();
@@ -39,11 +42,39 @@ private:
 	void printPre(SkewNode *) const;
 	void printLevel(SkewNode *) const;
 	SkewNode * root;
+	SkewNode * buildFromPre(const string& pre, int& pos);
 	SkewNode * merge(SkewNode * h1, SkewNode * h2);
 	SkewNode * merge1(SkewNode * h1, SkewNode * h2);
 	SkewNode * clone(SkewNode * rhs) const;
 };
 
+template <typename T>
+SkewHeap<T>::SkewHeap(const SkewHeap& rhs)
+{
+	if (this == &rhs)
+		return;
+	this->root = clone(rhs.root);
+}
+template <typename T>
+SkewHeap<T>::SkewHeap(const string& preorder)
+{
+	int t = 0;
+	root = SkewHeap<T>::buildFromPre(preorder, t);
+}
+
+template <typename T>
+auto SkewHeap<T>::buildFromPre(const string& preorder, int& pos)->SkewNode *
+{
+	if (preorder[pos] == '#')
+		return nullptr;
+	else
+	{
+		SkewNode * cur = new SkewNode(preorder[pos] - '0');
+		cur->left = buildFromPre(preorder, ++pos);
+		cur->right = buildFromPre(preorder, ++pos);
+		return cur;	
+	}
+}
 template <typename T>
 const T& SkewHeap<T>::findMin() const
 {
@@ -148,15 +179,28 @@ void SkewHeap<T>::printLevel(SkewNode *t) const
 			std::cout << "#";
 	}
 }
+
+template <typename T>
+auto SkewHeap<T>::clone(SkewNode * rhs) const->SkewNode *
+{
+	if (!rhs)
+		return nullptr;
+	else
+		return new SkewNode(rhs->element, clone(rhs->left), clone(rhs->right));
+}
 int main()
 {
 	vector<int> nums{2, 1, 4, 7, 4, 8, 3, 6, 4, 7};
-	class SkewHeap<int> heap;
+	string pre("1278###67###34##44###");
+	class SkewHeap<int> heap(pre);
 	for (int num : nums)
 		heap.insert(num);
-	heap.printPre();
+	for (int i = 0; i < 10; ++i)
+		heap.deleteMin();
+	class SkewHeap<int> heap2(heap);
+	heap2.printPre();
 	std::cout << std::endl;
-	heap.printLevel();	
+	heap2.printLevel();	
 	std::cout << std::endl;
 	return 0;
 }
