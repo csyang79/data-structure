@@ -29,6 +29,7 @@ void *producer(void *arg) {
 		++avail;
 		sleep(1);
 		pthread_mutex_unlock(&mtx);
+	//	sleep(1);
 	}
 }
 
